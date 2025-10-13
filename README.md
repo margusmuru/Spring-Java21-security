@@ -1,7 +1,3 @@
-# Resources
-Tutorial: https://www.youtube.com/watch?v=oeni_9g7too
-___
-
 # Spring security dependency and default login
 To use Spring Security, you must add dependency
 ```
