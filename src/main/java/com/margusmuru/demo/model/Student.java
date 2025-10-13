@@ -1,4 +1,4 @@
-package com.margusmuru.demo;
+package com.margusmuru.demo.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,5 +1,6 @@
-package com.margusmuru.demo;
+package com.margusmuru.demo.controller;
 
+import com.margusmuru.demo.model.Student;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
