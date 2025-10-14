@@ -22,3 +22,17 @@ create  table users (
 insert into users values (1, 'admin', 'password');
 insert into users values (2, 'user', 'pass');
 ```
+
+## Create table refresh_tokens
+```postgresql
+CREATE TABLE refresh_token (
+   id SERIAL PRIMARY KEY,
+   user_id integer,
+   token_hash VARCHAR(512),
+   expiry_date TIMESTAMP,
+   created TIMESTAMP
+);
+
+CREATE UNIQUE INDEX idx_refresh_tokens_token_hash ON refresh_token(token_hash);
+
+```

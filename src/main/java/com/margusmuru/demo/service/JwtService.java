@@ -7,11 +7,14 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -35,6 +38,18 @@ public class JwtService {
                 .signWith(getKey())
                 .compact();
 
+    }
+
+    public String generateRefreshToken(String token) {
+        try {
+            SecretKey key = getKey();
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(key);
+            byte[] hashBytes = mac.doFinal(token.getBytes());
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (Exception e) {
+            throw new RuntimeException("Error hashing refresh token", e);
+        }
     }
 
     private SecretKey getKey() {
@@ -67,5 +82,4 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
 }

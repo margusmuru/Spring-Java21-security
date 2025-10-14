@@ -1,5 +1,6 @@
 package com.margusmuru.demo.controller;
 
+import com.margusmuru.demo.model.LoginResponse;
 import com.margusmuru.demo.model.Users;
 import com.margusmuru.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody Users user){
+    public LoginResponse login(@RequestBody Users user){
         return userService.verify(user);
     }
 }

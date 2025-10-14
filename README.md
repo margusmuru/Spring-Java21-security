@@ -685,3 +685,20 @@ curl -I http://localhost:8080/kv/hello  # 200 OK if exists
 # delete
 curl -X DELETE http://localhost:8080/kv/hello
 ```
+
+## Implement refresh token logic
+I am not gonna copy-paste code here, you can look at code in the repository yourself. I will explain concepts.
+### Add refresh_token table
+Check readme in `/etc/postgresql`. I added a new table for refresh-tokens. A new token is generated and saved along with JWT token.
+While JWT is not saved, refresh-token gets hashed and saved to refresh_token table.
+When JWT expires and refresh-token is not expired (they should have long expire date but for demo purposes I set it to 1 hour) it can be used to get a new JWT token later.
+Check `com.margusmuru.demo.service.UserService#verify` method.
+- `JwtService`is used to generate a new refresh-token
+- `RefreshTokenService` is used to save it.
+  Login endpoint now returns something like this:
+```json
+{
+	"token": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ3IiwiaWF0IjoxNzYwNDc2MzI4LCJleHAiOjE3NjA0NzY5Mjh9.XRuz7b1MANaDOfW0eFzcjKg_PA74h49l2PejCp1IhlDKyPLniNbLxHAHVcMVhPDj",
+	"refreshToken": "031629e3-733b-43b6-b061-8add7b3a9036w"
+}
+```
