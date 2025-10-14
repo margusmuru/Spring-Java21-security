@@ -1,8 +1,8 @@
 # Introduction
 Repository has 3 branches:
 - basic-auth - basic username+password auth
-- jwt-auth - basic authentication using jwt token
-- main - jwt auth but with refresh-tokens, logout and Redis for key blacklists.
+- jwt-auth - basic authentication using JWT token
+- main - JWT auth but with refresh-tokens, logout and Redis for key blacklists.
 
 # Spring security dependency and default login
 To use Spring Security, you must add dependency
