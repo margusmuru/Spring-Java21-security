@@ -1,0 +1,19 @@
+---
+services:
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass mypassword
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "s3cr3t", "PING"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+volumes:
+  redis_data:
+
