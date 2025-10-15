@@ -1,5 +1,6 @@
 package com.margusmuru.demo.service;
 
+import com.margusmuru.demo.model.RefreshToken;
 import com.margusmuru.demo.model.TokenResponse;
 import com.margusmuru.demo.model.Users;
 import com.margusmuru.demo.repo.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -44,7 +46,7 @@ public class UserService {
         var token = jwtService.generateToken(user.getUsername());
 
         var refreshToken = UUID.randomUUID().toString() + user.getUsername();
-        var refreshTokenHash = jwtService.generateRefreshToken(refreshToken);
+        var refreshTokenHash = jwtService.generateRefreshTokenHash(refreshToken);
         refreshTokenService.save(user, refreshTokenHash);
 
         return TokenResponse.builder()
@@ -53,16 +55,34 @@ public class UserService {
                 .build();
     }
 
-    public TokenResponse refresh(Users user, TokenResponse tokenResponse) {
-        var refreshTokenHash = jwtService.generateRefreshToken(tokenResponse.getRefreshToken());
-        if(!refreshTokenService.validate(user.getId(), refreshTokenHash)) {
-            throw new RuntimeException("Invalid refresh token");
+    public TokenResponse refreshTokens(String refreshToken, String jwtToken) {
+        var refreshTokenHash = jwtService.generateRefreshTokenHash(refreshToken);
+        Optional<RefreshToken> existingToken = refreshTokenService.getRefreshTokenByHash(refreshTokenHash);
+        if (existingToken.isEmpty() || existingToken.get().getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token not found or expired");
         }
-        refreshTokenService.delete(tokenResponse.getRefreshToken());
-        LocalDateTime tokenExpiration = jwtService.extractExpiration(tokenResponse.getToken());
-        var key = "blacklist:" + tokenResponse.getToken();
-        redisKvService.set(key, "true", Duration.between(LocalDateTime.now(), tokenExpiration));
+        refreshTokenService.deleteByHash(refreshTokenHash);
+        Users user = userRepository.findById(existingToken.get().getUserId()).orElseThrow();
 
-        return generateTokens(user);
+        TokenResponse tokens = generateTokens(user);
+
+        invalidateJwt(jwtToken);
+        return tokens;
+    }
+
+    public void invalidateJwt(String jwtToken) {
+        if (jwtToken == null) {
+            return;
+        }
+        var key = "blacklist:" + jwtToken;
+        LocalDateTime tokenExpiration = jwtService.extractExpiration(jwtToken);
+        if (tokenExpiration.isBefore(LocalDateTime.now())) {
+            return;
+        }
+        redisKvService.set(key, "true", Duration.between(LocalDateTime.now(), tokenExpiration));
+    }
+
+    public void invalidateRefreshToken(Users user) {
+        refreshTokenService.deleteByUserId(user.getId());
     }
 }

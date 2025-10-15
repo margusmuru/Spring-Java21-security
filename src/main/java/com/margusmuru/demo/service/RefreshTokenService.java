@@ -5,8 +5,10 @@ import com.margusmuru.demo.model.Users;
 import com.margusmuru.demo.repo.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -23,19 +25,17 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(token);
     }
 
-    public boolean validate(int userId, String refreshTokenHash) {
-        var tokenOpt = refreshTokenRepository.findByTokenHash(refreshTokenHash);
-        if (tokenOpt.isEmpty()) {
-            return false;
-        }
-        var token = tokenOpt.get();
-        if(token.getUserId() != userId) {
-            return false;
-        }
-        return !token.getExpiryDate().isBefore(LocalDateTime.now());
+    public Optional<RefreshToken> getRefreshTokenByHash(String refreshTokenHash) {
+        return refreshTokenRepository.findByTokenHash(refreshTokenHash);
     }
 
-    public void delete(String refreshTokenHash) {
+    @Transactional
+    public void deleteByHash(String refreshTokenHash) {
         refreshTokenRepository.deleteByTokenHash(refreshTokenHash);
+    }
+
+    @Transactional
+    public void deleteByUserId(int id) {
+        refreshTokenRepository.deleteByUserId(id);
     }
 }

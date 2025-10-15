@@ -1,6 +1,9 @@
 package com.margusmuru.demo.service;
 
+import io.jsonwebtoken.ClaimJwtException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,13 +12,11 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -34,14 +35,14 @@ public class JwtService {
                 .add(claims)
                 .subject(username)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10)) // 10 min
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5)) // 5 min
                 .and()
                 .signWith(getKey())
                 .compact();
 
     }
 
-    public String generateRefreshToken(String token) {
+    public String generateRefreshTokenHash(String token) {
         try {
             SecretKey key = getKey();
             Mac mac = Mac.getInstance("HmacSHA256");
@@ -59,21 +60,37 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (ClaimJwtException e) {
+            return null;
+        }
     }
 
     public LocalDateTime extractExpiration(String token) {
-        var date = extractClaim(token, Claims::getExpiration);
-        return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
+        try {
+            var date = extractClaim(token, Claims::getExpiration);
+            return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
+        } catch (ClaimJwtException e) {
+            return LocalDateTime.MIN;
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
-        final String userName = extractUsername(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            final String userName = extractUsername(token);
+            return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        } catch (ClaimJwtException e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+        try {
+            return extractClaim(token, Claims::getExpiration).before(new Date());
+        } catch (ClaimJwtException e) {
+            return true;
+        }
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
