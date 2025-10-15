@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/register", "/kv/**", "/refresh-token").permitAll()
                         .anyRequest().authenticated())
                 //.httpBasic(Customizer.withDefaults())
+                .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

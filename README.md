@@ -723,7 +723,20 @@ If JWT token is valid, final step is to verify it is not blacklisted in Redis. I
 UserController now has an endpoint `/logout` that logs out the user. What happens:
 - JWT token is invalidated by adding it to the blacklist in Redis
 - refresh-token is invalidated by deleting it from the database.
+>[!warning] add config to change spring security default endpoint
+>Otherwise it will be in conflict with our endpoint.
 
+```java
+.logout(logout -> logout
+        .logoutUrl("/perform_logout"))
+```
+Or
+  ```java
+  logout(AbstractHttpConfigurer::disable)
+  ```
+
+
+## Conclusion
 Thats it, authentication works.
 
 # Verify scenarios
