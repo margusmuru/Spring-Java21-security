@@ -756,3 +756,15 @@ Here are some scenarios to validate logic.
 - 403 error
 - *using old refresh-token* /refresh-token
 - error
+## User logs in, logs out, `/students` returns error
+- /login
+- /logout
+- success
+- /students
+- error
+## User logs in, logs out, `/refresh-token` returns error
+- /login
+- /logout
+- success
+- /refresh-token
+- error
