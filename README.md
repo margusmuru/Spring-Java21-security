@@ -4,6 +4,8 @@ Repository has 3 branches:
 - jwt-auth - basic authentication using JWT token
 - main - JWT auth but with refresh-tokens, logout and Redis for key blacklists.
 
+This is a very barebones example of how to implement Spring Security with JWT and refresh tokens. There are no proper dto/model/entity classes, no proper exception handling (a simple RuntimeException is thrown). In a production application, entities should have proper ID values properly generated. Database should have proper foreign keys etc. Code structure is also very simple and should be improved for production use.
+
 # Spring security dependency and default login
 To use Spring Security, you must add dependency
 ```
@@ -702,3 +704,20 @@ Check `com.margusmuru.demo.service.UserService#verify` method.
 	"refreshToken": "031629e3-733b-43b6-b061-8add7b3a9036w"
 }
 ```
+
+## refresh-token endpoint
+UserController now has endpoint `/refresh-token`. Once user has logged in, it can send a request where body is the same as login response - valid JWT token and valid refresh-token.
+Endpoint validates that the JWT token in the body matches with what is in header, username matches and calls userService to refresh token.
+
+UserService validates if refresh-token is valid and belongs to this user. If so, a new set of tokens is generated. Refresh-token is saved to db and old JWT token is pushed to redis with expiration time so that Redis would delete it itself once it expires. Old refresh-token is also deleted from db.
+
+There is a missing logic where expired refresh-tokens are never deleted so there should be a cron job or postgresql cron job that would remove such tokens.
+
+## JwtFilter update
+Jwt filter was updated with
+```java
+!redisKvService.exists("blacklist:" + token
+```
+If JWT token is valid, final step is to verify it is not blacklisted in Redis. If not, user is authenticated.
+
+Thats it, authentication works.
