@@ -8,9 +8,9 @@ This is a very barebones example of how to implement Spring Security with JWT an
 
 # Table of contents
 - [Spring security dependency and default login](#spring-security-dependency-and-default-login)
-- [CSRF](#CSRF)
+- [CSRF](#csrf)
 - [Configure Spring Web Security](#configure-spring-web-security)
-- [JWT](#JWT)
+- [JWT](#jwt)
 - [Verify scenarios](#verify-scenarios)
 
 # Spring security dependency and default login
