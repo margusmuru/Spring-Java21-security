@@ -706,10 +706,9 @@ Check `com.margusmuru.demo.service.UserService#verify` method.
 ```
 
 ## refresh-token endpoint
-UserController now has endpoint `/refresh-token`. Once user has logged in, it can send a request where body is the same as login response - valid JWT token and valid refresh-token.
-Endpoint validates that the JWT token in the body matches with what is in header, username matches and calls userService to refresh token.
-
-UserService validates if refresh-token is valid and belongs to this user. If so, a new set of tokens is generated. Refresh-token is saved to db and old JWT token is pushed to redis with expiration time so that Redis would delete it itself once it expires. Old refresh-token is also deleted from db.
+UserController now has an endpoint `/refresh-token`. Once user has logged in, it can send a request with refresh-token. If token is valid, a new set of tokens is generated. If a non-expired JWT token is present in headers, it will be invalidated as well.
+This endpoint is also added to security config `permitAll()`list as it can and most likely is called without having a valid JWT token.
+>[!warning] This also highlights why it is very important to keep refresh-token secure. A new set of keys is generated for an user just using a valid refresh-token. It cannot be validated if user who sent the request with existing tokens really is the person it claims to be.
 
 There is a missing logic where expired refresh-tokens are never deleted so there should be a cron job or postgresql cron job that would remove such tokens.
 
@@ -720,4 +719,27 @@ Jwt filter was updated with
 ```
 If JWT token is valid, final step is to verify it is not blacklisted in Redis. If not, user is authenticated.
 
+## logout endpoint
+UserController now has an endpoint `/logout` that logs out the user. What happens:
+- JWT token is invalidated by adding it to the blacklist in Redis
+- refresh-token is invalidated by deleting it from the database.
+
 Thats it, authentication works.
+
+# Verify scenarios
+Here are some scenarios to validate logic.
+## User logs in and can access `/students`endpoint
+- /login
+- /students
+- success
+## User is not logged in and cannot access `/students`endpoint
+- invalid/missing JWT token in headers
+- /students
+- 403 error
+## User logs in, calls `/refresh-token`, old tokens do not work
+- /login
+- /refresh-tokens
+- *using old JWT token in headers* /students
+- 403 error
+- *using old refresh-token* /refresh-token
+- error
