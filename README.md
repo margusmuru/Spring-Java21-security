@@ -6,6 +6,13 @@ Repository has 3 branches:
 
 This is a very barebones example of how to implement Spring Security with JWT and refresh tokens. There are no proper dto/model/entity classes, no proper exception handling (a simple RuntimeException is thrown). In a production application, entities should have proper ID values properly generated. Database should have proper foreign keys etc. Code structure is also very simple and should be improved for production use.
 
+# Table of contents
+- [Spring security dependency and default login](#spring-security-dependency-and-default-login)
+- [CSRF](#CSRF)
+- [Configure Spring Web Security](#configure-spring-web-security)
+- [JWT](#JWT)
+- [Verify scenarios](#verify-scenarios)
+
 # Spring security dependency and default login
 To use Spring Security, you must add dependency
 ```
