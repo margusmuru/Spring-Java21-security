@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,6 +60,11 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public LocalDateTime extractExpiration(String token) {
+        var date = extractClaim(token, Claims::getExpiration);
+        return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

@@ -22,4 +22,20 @@ public class RefreshTokenService {
                         .build();
         return refreshTokenRepository.save(token);
     }
+
+    public boolean validate(int userId, String refreshTokenHash) {
+        var tokenOpt = refreshTokenRepository.findByTokenHash(refreshTokenHash);
+        if (tokenOpt.isEmpty()) {
+            return false;
+        }
+        var token = tokenOpt.get();
+        if(token.getUserId() != userId) {
+            return false;
+        }
+        return !token.getExpiryDate().isBefore(LocalDateTime.now());
+    }
+
+    public void delete(String refreshTokenHash) {
+        refreshTokenRepository.deleteByTokenHash(refreshTokenHash);
+    }
 }

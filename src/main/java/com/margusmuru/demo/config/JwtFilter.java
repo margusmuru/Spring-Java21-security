@@ -2,6 +2,7 @@ package com.margusmuru.demo.config;
 
 import com.margusmuru.demo.service.JwtService;
 import com.margusmuru.demo.service.MyUserDetailsService;
+import com.margusmuru.demo.service.RedisKvService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final ApplicationContext context;
+    private final RedisKvService redisKvService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,8 +38,10 @@ public class JwtFilter extends OncePerRequestFilter {
             username = jwtService.extractUsername(token);
         }
 
-        // if username is not null and user is not already authenticated
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // if username is not null and user is not already authenticated and token is not blacklisted
+        if (username != null
+                && SecurityContextHolder.getContext().getAuthentication() == null
+                && !redisKvService.exists("blacklist:" + token)) {
             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
             // validate token
             if (jwtService.validateToken(token, userDetails)) {
